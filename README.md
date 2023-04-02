@@ -1,7 +1,43 @@
 # Bear in Mind | Exceptions
 
 The Bear in Mind is a free open-source LMS (learning management system). This is the library that provides and handles
-common exceptions.
+common exceptions. Bear in mind that the library automatically registers `RestControllerAdvice` bean for controller exception
+handling.
+
+## Setup
+
+### Maven
+
+`settings.xml > profiles > profile > repositories`
+```xml
+<repository>
+    <id>bear-in-mind-exceptions</id>
+    <releases>
+        <enabled>true</enabled>
+    </releases>
+    <snapshots>
+        <enabled>true</enabled>
+    </snapshots>
+    <url>https://github.com/bear-in-mind-lms/bear-in-mind-exceptions/raw/mvn-artifact</url>
+</repository>
+```
+
+`pom.xml`
+```xml
+<project>
+    <properties>
+        <bear-in-mind-exceptions.version>0.0.1</bear-in-mind-exceptions.version>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>com.kwezal.bearinmind</groupId>
+            <artifactId>bear-in-mind-exceptions</artifactId>
+            <version>${bear-in-mind-exceptions.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+```
 
 ## Contribution
 
