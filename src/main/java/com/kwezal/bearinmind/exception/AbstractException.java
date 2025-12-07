@@ -2,10 +2,10 @@ package com.kwezal.bearinmind.exception;
 
 import static java.util.Objects.isNull;
 
+import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
-import org.springframework.lang.Nullable;
 
 @Getter
 public abstract class AbstractException extends RuntimeException {
