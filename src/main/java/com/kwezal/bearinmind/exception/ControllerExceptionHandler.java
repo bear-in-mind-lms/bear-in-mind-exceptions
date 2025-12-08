@@ -2,17 +2,15 @@ package com.kwezal.bearinmind.exception;
 
 import static java.util.Objects.nonNull;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kwezal.bearinmind.exception.response.ErrorCode;
 import com.kwezal.bearinmind.exception.response.ErrorResponse;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.RollbackException;
+import jakarta.validation.ConstraintViolationException;
 import java.nio.file.AccessDeniedException;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.RollbackException;
-import javax.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +25,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.UnknownHttpStatusCodeException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @RestControllerAdvice
@@ -42,7 +42,7 @@ public class ControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ErrorResponse handleResourceNotFoundException(ResourceNotFoundException e) {
+    public ErrorResponse handleResourceNotFoundException(final ResourceNotFoundException e) {
         log.info(LogMessage.RESOURCE_NOT_FOUND, e.getObjectName(), e.getProperties());
 
         return new ErrorResponse(e.getErrorCode(), e.getErrorArguments(), applicationName);
@@ -52,13 +52,13 @@ public class ControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(HttpClientErrorException.class)
-    public ErrorResponse handleHttpClientErrorException(HttpClientErrorException e) {
+    public ErrorResponse handleHttpClientErrorException(final HttpClientErrorException e) {
         return handleRestClientResponseException(e);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(InvalidRequestDataException.class)
-    public ErrorResponse handleInvalidRequestDataException(InvalidRequestDataException e) {
+    public ErrorResponse handleInvalidRequestDataException(final InvalidRequestDataException e) {
         log.info(LogMessage.INVALID_REQUEST_DATA, e.getObjectName(), e.getProperties());
 
         return new ErrorResponse(e.getErrorCode(), e.getErrorArguments(), applicationName);
@@ -68,7 +68,7 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(
         { HttpMessageNotReadableException.class, IllegalArgumentException.class, ConstraintViolationException.class }
     )
-    public ErrorResponse handleIllegalArgumentException(Exception e) {
+    public ErrorResponse handleIllegalArgumentException(final Exception e) {
         final var exceptionClassName = e.getClass().getSimpleName();
         log.error(LogMessage.GENERIC_EXCEPTION_MESSAGE, exceptionClassName, e.getMessage());
 
@@ -77,7 +77,7 @@ public class ControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ErrorResponse handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
         final var parameter = e.getParameter();
         final var parameterName = nonNull(parameter.getParameter().getName()) ? parameter.getParameter().getName() : "";
         final var method = parameter.getMethod();
@@ -94,7 +94,7 @@ public class ControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BindException.class)
-    public ErrorResponse handleBindException(BindException e) {
+    public ErrorResponse handleBindException(final BindException e) {
         final var fieldsErrorMessages = FieldsAndErrorMessages.fromBindException(e);
         final var fields = fieldsErrorMessages.fields();
         final var errorMessages = fieldsErrorMessages.errorMessages();
@@ -108,7 +108,7 @@ public class ControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(AuthorizationException.class)
-    public ErrorResponse handleAuthorizationException(AuthorizationException e) {
+    public ErrorResponse handleAuthorizationException(final AuthorizationException e) {
         log.info(LogMessage.AUTHORIZATION_EXCEPTION, e.getObjectName(), e.getProperties());
 
         return new ErrorResponse(e.getErrorCode(), e.getErrorArguments(), applicationName);
@@ -118,7 +118,7 @@ public class ControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(ForbiddenException.class)
-    public ErrorResponse handleForbiddenException(ForbiddenException e) {
+    public ErrorResponse handleForbiddenException(final ForbiddenException e) {
         log.info(LogMessage.AUTHORIZATION_EXCEPTION, e.getObjectName(), e.getProperties());
 
         return new ErrorResponse(e.getErrorCode(), e.getErrorArguments(), applicationName);
@@ -128,13 +128,13 @@ public class ControllerExceptionHandler {
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({ HttpServerErrorException.class, UnknownHttpStatusCodeException.class })
-    public ErrorResponse handleHttpServerErrorException(RestClientResponseException e) {
+    public ErrorResponse handleHttpServerErrorException(final RestClientResponseException e) {
         return handleRestClientResponseException(e);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler({ AccessDeniedException.class, SecurityException.class })
-    public ErrorResponse handleSecurityExceptions(Exception e) {
+    public ErrorResponse handleSecurityExceptions(final Exception e) {
         final var exceptionClassName = e.getClass().getSimpleName();
         log.error(LogMessage.GENERIC_EXCEPTION_MESSAGE, exceptionClassName, e.getMessage());
 
@@ -152,19 +152,19 @@ public class ControllerExceptionHandler {
             RollbackException.class,
         }
     )
-    public ErrorResponse handleInternalServerErrors(Exception e) {
+    public ErrorResponse handleInternalServerErrors(final Exception e) {
         final var exceptionClassName = e.getClass().getSimpleName();
         log.error(LogMessage.GENERIC_EXCEPTION_MESSAGE, exceptionClassName, e.getMessage());
 
         return new ErrorResponse(ErrorCode.INTERNAL_ERROR, Set.of(exceptionClassName), applicationName);
     }
 
-    private ErrorResponse handleRestClientResponseException(RestClientResponseException e) {
+    private ErrorResponse handleRestClientResponseException(final RestClientResponseException e) {
         final var bodyAsString = e.getResponseBodyAsString();
 
         try {
             return objectMapper.readValue(bodyAsString, ErrorResponse.class);
-        } catch (JsonProcessingException jpe) {
+        } catch (JacksonException je) {
             log.error(LogMessage.GENERIC_EXCEPTION_MESSAGE, e.getClass().getSimpleName(), e.getMessage());
             return new ErrorResponse(ErrorCode.CONNECTION_ERROR, null, applicationName);
         }

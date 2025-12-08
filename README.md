@@ -26,7 +26,7 @@ handling.
 ```xml
 <project>
     <properties>
-        <bear-in-mind-exceptions.version>0.0.1</bear-in-mind-exceptions.version>
+        <bear-in-mind-exceptions.version>0.0.2</bear-in-mind-exceptions.version>
     </properties>
     
     <dependencies>

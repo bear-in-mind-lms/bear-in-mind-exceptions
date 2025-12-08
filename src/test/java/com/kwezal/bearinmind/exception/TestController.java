@@ -2,13 +2,13 @@ package com.kwezal.bearinmind.exception;
 
 import com.kwezal.bearinmind.exception.response.ErrorCode;
 import com.kwezal.bearinmind.exception.response.ErrorResponse;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.RollbackException;
+import jakarta.validation.ConstraintViolationException;
 import java.nio.file.AccessDeniedException;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.RollbackException;
-import javax.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
